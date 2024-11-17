@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import Footer from './Footer';
+import { FaHome, FaBox, FaSignOutAlt, FaBars } from 'react-icons/fa';
 
 export default function DashboardLayout({ children }) {
   const router = useRouter();
@@ -16,87 +17,89 @@ export default function DashboardLayout({ children }) {
     setUser(JSON.parse(userData));
   }, []);
 
-  const handleLogout = async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    try {
-      const res = await fetch('/api/auth/logout', {
-        method: 'POST',
-      });
-
-      if (res.ok) {
-        localStorage.removeItem('user');
-        router.push('/');
-      }
-    } catch (error) {
-      console.error('Logout failed:', error);
-    }
-    
-    setIsMenuOpen(false);
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    router.push('/');
   };
 
-  if (!user) return null;
+  const menuItems = [
+    {
+      name: 'Dashboard',
+      path: '/dashboard',
+      icon: <FaHome className="w-5 h-5" />,
+    },
+    {
+      name: 'Stock Management',
+      path: '/dashboard/stock',
+      icon: <FaBox className="w-5 h-5" />,
+    },
+  ];
 
   return (
     <div className="min-h-screen flex flex-col">
-      <nav className="bg-white shadow-lg">
-        <div className="container mx-auto px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-12">
-              <div className="text-xl font-medium text-blue-600">
-                {process.env.NEXT_PUBLIC_BRAND_NAME}
+      <nav className="bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16">
+            <div className="flex">
+              <div className="flex-shrink-0 flex items-center">
+                <button
+                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                  className="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+                >
+                  <FaBars className="h-6 w-6" />
+                </button>
+                <span className="text-xl font-bold text-gray-800 ml-2">Admin Panel</span>
               </div>
-              <div className="hidden md:flex space-x-8">
-                <a href="/dashboard" className={`text-gray-600 hover:text-gray-900 ${router.pathname === '/dashboard' ? 'text-blue-600 font-medium' : ''}`}>
-                  Dashboard
-                </a>
-                <a href="/dashboard/topics" className={`text-gray-600 hover:text-gray-900 ${router.pathname === '/dashboard/topics' ? 'text-blue-600 font-medium' : ''}`}>
-                  Topics
-                </a>
-                <a href="/dashboard/analytics" className={`text-gray-600 hover:text-gray-900 ${router.pathname === '/dashboard/analytics' ? 'text-blue-600 font-medium' : ''}`}>
-                  Analytics
-                </a>
+              <div className="hidden lg:ml-6 lg:flex lg:space-x-8">
+                {menuItems.map((item) => (
+                  <a
+                    key={item.path}
+                    href={item.path}
+                    className={`inline-flex items-center px-1 pt-1 text-sm font-medium ${
+                      router.pathname === item.path
+                        ? 'text-blue-500 border-b-2 border-blue-500'
+                        : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    {item.icon}
+                    <span className="ml-2">{item.name}</span>
+                  </a>
+                ))}
               </div>
             </div>
-
-            <div className="flex items-center space-x-4">
-              <div className="relative">
-                <button 
-                  onClick={() => setIsMenuOpen(!isMenuOpen)}
-                  className="flex items-center space-x-2 text-gray-700 hover:text-gray-900"
-                >
-                  <span>{user.email}</span>
-                  <svg 
-                    className={`w-4 h-4 transform transition-transform ${isMenuOpen ? 'rotate-180' : ''}`} 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                {isMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2">
-                    <a href="/dashboard/profile" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
-                      Profile
-                    </a>
-                    <a href="/dashboard/settings" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
-                      Settings
-                    </a>
-                    <hr className="my-2" />
-                    <button 
-                      onClick={handleLogout}
-                      className="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
-                    >
-                      Logout
-                    </button>
-                  </div>
-                )}
-              </div>
+            <div className="flex items-center">
+              <button
+                onClick={handleLogout}
+                className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700"
+              >
+                <FaSignOutAlt className="w-5 h-5 mr-2" />
+                Logout
+              </button>
             </div>
           </div>
         </div>
+
+        {/* Mobile menu */}
+        {isMenuOpen && (
+          <div className="lg:hidden">
+            <div className="pt-2 pb-3 space-y-1">
+              {menuItems.map((item) => (
+                <a
+                  key={item.path}
+                  href={item.path}
+                  className={`flex items-center px-4 py-2 text-base font-medium ${
+                    router.pathname === item.path
+                      ? 'text-blue-500 bg-blue-50'
+                      : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  {item.icon}
+                  <span className="ml-2">{item.name}</span>
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
       </nav>
 
       <main className="flex-grow bg-gray-50">
