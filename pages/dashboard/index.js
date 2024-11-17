@@ -129,7 +129,7 @@ export default function Dashboard() {
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Style</th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Status</th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Sales</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Actions</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Actions.</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
