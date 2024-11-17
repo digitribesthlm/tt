@@ -122,10 +122,10 @@ export default function ProductEditForm({ product, onSave, onCancel }) {
           name="status"
           value={formData.status}
           onChange={handleInputChange}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 sm:text-sm"
+          className="select select-bordered"
         >
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
+          <option value="published">Published</option>
+          <option value="unpublished">Unpublished</option>
         </select>
       </div>
       <div className="grid grid-cols-1">

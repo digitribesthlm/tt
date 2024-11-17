@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import DashboardLayout from '../../components/DashboardLayout';
 import { FaTag, FaShoppingCart, FaPalette, FaDollarSign } from 'react-icons/fa';
 import { useRouter } from 'next/router';
+import StatusToggle from '../../components/StatusToggle';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -28,8 +29,20 @@ export default function Dashboard() {
     }
   };
 
-  const handleViewDetails = (productId) => {
+  const handleViewDetails = (e, productId) => {
+    if (e.target.closest('.status-toggle')) {
+      return;
+    }
     router.push(`/dashboard/products/${productId}`);
+  };
+
+  const handleStatusChange = async (productId, newStatus) => {
+    const updatedProducts = products.map(product => 
+      product.internal_id === productId 
+        ? { ...product, status: newStatus }
+        : product
+    );
+    setProducts(updatedProducts);
   };
 
   if (loading) {
@@ -116,14 +129,15 @@ export default function Dashboard() {
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Style</th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Status</th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Sales</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {products.slice(0, 5).map((product) => (
+                {products.map((product) => (
                   <tr 
                     key={product.internal_id} 
-                    className="hover:bg-gray-50 cursor-pointer transition-colors"
-                    onClick={() => handleViewDetails(product.internal_id)}
+                    className="hover:bg-gray-50 cursor-pointer"
+                    onClick={(e) => handleViewDetails(e, product.internal_id)}
                   >
                     <td className="px-4 py-3 text-sm">{product.internal_id}</td>
                     <td className="px-4 py-3 text-sm flex items-center space-x-2">
@@ -139,15 +153,26 @@ export default function Dashboard() {
                     <td className="px-4 py-3 text-sm">{product.category}</td>
                     <td className="px-4 py-3 text-sm">{product.style}</td>
                     <td className="px-4 py-3 text-sm">
-                      <span className={`px-2 py-1 rounded-full text-xs ${
-                        product.status === 'active' 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {product.status}
-                      </span>
+                      <div className="status-toggle" onClick={(e) => e.stopPropagation()}>
+                        <StatusToggle
+                          productId={product.internal_id}
+                          initialStatus={product.status}
+                          onStatusChange={(newStatus) => handleStatusChange(product.internal_id, newStatus)}
+                        />
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-sm">{product.sales?.length || 0}</td>
+                    <td className="px-4 py-3 text-sm">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          router.push(`/dashboard/products/${product.internal_id}`);
+                        }}
+                        className="text-blue-600 hover:text-blue-800"
+                      >
+                        View Details
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
