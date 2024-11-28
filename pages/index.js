@@ -62,7 +62,7 @@ export default function WelcomePage() {
         </div>
 
         <div className="container mx-auto px-8 py-20">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
             <div className="space-y-6">
               <h1 className="text-6xl font-bold leading-tight">
                 <span className="block text-gray-900">MANAGE</span>
@@ -80,6 +80,13 @@ export default function WelcomePage() {
                   Admin Login
                 </button>
               </div>
+            </div>
+            <div className="relative h-[420px] flex items-center">
+              <img 
+                src="/tatt.png"
+                alt="Tattoo Design"
+                className="object-contain h-full max-w-[95%]"
+              />
             </div>
           </div>
         </div>

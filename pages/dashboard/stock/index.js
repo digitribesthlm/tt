@@ -9,6 +9,7 @@ export default function StockManagement() {
   const [search, setSearch] = useState('');
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'table'
+  const [updating, setUpdating] = useState(null);
 
   useEffect(() => {
     fetchProducts();
@@ -25,6 +26,37 @@ export default function StockManagement() {
       console.error('Error:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const updateProductStatus = async (productId, newStatus) => {
+    try {
+      setUpdating(productId);
+      const response = await fetch('/api/shopify/products/update', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          productId,
+          status: newStatus
+        })
+      });
+
+      if (!response.ok) throw new Error('Failed to update product');
+      
+      // Update local state
+      setProducts(products.map(product => 
+        product.id === productId 
+          ? { ...product, status: newStatus }
+          : product
+      ));
+
+    } catch (error) {
+      console.error('Error updating product:', error);
+      alert('Failed to update product status');
+    } finally {
+      setUpdating(null);
     }
   };
 
@@ -133,7 +165,21 @@ export default function StockManagement() {
                           </span>
                         </td>
                         <td>${product.variant.price}</td>
-                        <td>{product.status || '-'}</td>
+                        <td>
+                          <select
+                            value={product.status || 'active'}
+                            onChange={(e) => updateProductStatus(product.id, e.target.value)}
+                            className="select select-bordered select-sm w-full max-w-xs"
+                            disabled={updating === product.id}
+                          >
+                            <option value="active">Active</option>
+                            <option value="archived">Archived</option>
+                            <option value="draft">Draft</option>
+                          </select>
+                          {updating === product.id && (
+                            <span className="loading loading-spinner loading-xs ml-2"></span>
+                          )}
+                        </td>
                         <td>{product.created_at || '-'}</td>
                         <td>{product.updated_at || '-'}</td>
                         <td>
@@ -192,28 +238,49 @@ export default function StockManagement() {
                       <p className="text-sm text-gray-500">{product.vendor}</p>
                     </div>
                     
-                    <div className="flex justify-between items-center">
-                      <span className="font-bold text-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className={`
+                          px-2 py-1 rounded-full text-sm
+                          ${product.variant.inventory_quantity <= 0 ? 'bg-red-100 text-red-800' :
+                            product.variant.inventory_quantity < 5 ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-green-100 text-green-800'}
+                        `}>
+                          {product.variant.inventory_quantity} in stock
+                        </span>
+                      </div>
+                      <div className="text-lg font-semibold">
                         ${product.variant.price}
-                      </span>
-                      <span className={`
-                        px-2 py-1 rounded-full text-sm
-                        ${product.variant.inventory_quantity <= 0 ? 'bg-red-100 text-red-800' :
-                          product.variant.inventory_quantity < 5 ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-green-100 text-green-800'}
-                      `}>
-                        Stock: {product.variant.inventory_quantity}
-                      </span>
+                      </div>
                     </div>
 
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-gray-500">SKU: {product.variant.sku || '-'}</span>
-                      <span className={`
-                        px-2 py-1 rounded-full
-                        ${product.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}
-                      `}>
-                        {product.status}
-                      </span>
+                    <div className="pt-3 border-t">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-500">Status</span>
+                        <div className="relative">
+                          <select
+                            value={product.status || 'active'}
+                            onChange={(e) => updateProductStatus(product.id, e.target.value)}
+                            className={`
+                              select select-sm select-ghost
+                              ${updating === product.id ? 'opacity-50' : ''}
+                              ${product.status === 'active' ? 'text-green-600' :
+                                product.status === 'draft' ? 'text-orange-600' :
+                                'text-gray-600'}
+                            `}
+                            disabled={updating === product.id}
+                          >
+                            <option value="active" className="text-green-600">Active</option>
+                            <option value="draft" className="text-orange-600">Draft</option>
+                            <option value="archived" className="text-gray-600">Archived</option>
+                          </select>
+                          {updating === product.id && (
+                            <span className="absolute right-0 top-1/2 -translate-y-1/2 mr-6">
+                              <span className="loading loading-spinner loading-xs"></span>
+                            </span>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
