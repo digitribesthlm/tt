@@ -32,6 +32,15 @@ export default function StockManagement() {
   const updateProductStatus = async (productId, newStatus) => {
     try {
       setUpdating(productId);
+
+      // Update local state immediately for smooth UI
+      setProducts(products.map(product => 
+        product.id === productId 
+          ? { ...product, status: newStatus }
+          : product
+      ));
+
+      // Then update in Shopify
       const response = await fetch('/api/shopify/products/update', {
         method: 'PUT',
         headers: {
@@ -43,17 +52,29 @@ export default function StockManagement() {
         })
       });
 
-      if (!response.ok) throw new Error('Failed to update product');
+      if (!response.ok) {
+        throw new Error('Failed to update product');
+      }
       
-      // Update local state
+      const updatedProduct = await response.json();
+      
+      // Verify the update was successful and update local state with the response
       setProducts(products.map(product => 
         product.id === productId 
-          ? { ...product, status: newStatus }
+          ? { ...product, ...updatedProduct }
           : product
       ));
 
     } catch (error) {
       console.error('Error updating product:', error);
+      
+      // Revert local state on error
+      setProducts(products.map(product => 
+        product.id === productId 
+          ? { ...product, status: product.status }
+          : product
+      ));
+      
       alert('Failed to update product status');
     } finally {
       setUpdating(null);

@@ -8,22 +8,35 @@ const shopifyFetch = async (endpoint, options = {}) => {
   const baseUrl = url.replace(/https:\/\/.*?@/, 'https://');
   
   try {
-    console.log('Shopify request:', {
-      url: `${baseUrl}${endpoint}`,
-      method: options.method || 'GET',
-      body: options.body
-    });
-
-    const response = await fetch(`${baseUrl}${endpoint}`, {
+    const requestOptions = {
       method: options.method || 'GET',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Basic ${Buffer.from(credentials).toString('base64')}`
-      },
-      ...options
+      }
+    };
+
+    // Only add body for PUT/POST requests
+    if (options.body && ['PUT', 'POST'].includes(requestOptions.method)) {
+      requestOptions.body = options.body;
+    }
+
+    console.log('Shopify request:', {
+      url: `${baseUrl}${endpoint}`,
+      method: requestOptions.method,
+      body: requestOptions.body
     });
 
-    const data = await response.json();
+    const response = await fetch(`${baseUrl}${endpoint}`, requestOptions);
+    
+    let data;
+    const textResponse = await response.text();
+    try {
+      data = JSON.parse(textResponse);
+    } catch (e) {
+      console.error('Failed to parse JSON response:', textResponse);
+      throw new Error(`Invalid JSON response: ${textResponse}`);
+    }
 
     if (!response.ok) {
       console.error('Shopify API error response:', data);

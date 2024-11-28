@@ -14,14 +14,23 @@ export async function PUT(request) {
 
         console.log('Updating product:', { productId, status });
 
-        // Update product in Shopify using admin API
-        const response = await shopifyFetch(`admin/api/2023-10/products/${productId}.json`, {
+        // First get the current product data
+        const getProduct = await shopifyFetch(`products/${productId}.json`);
+        if (!getProduct.product) {
+            throw new Error('Product not found');
+        }
+
+        // Update only the status while keeping other fields unchanged
+        const updateData = {
+            ...getProduct.product,
+            status: status
+        };
+
+        // Update product in Shopify
+        const response = await shopifyFetch(`products/${productId}.json`, {
             method: 'PUT',
             body: JSON.stringify({
-                product: {
-                    id: productId,
-                    status: status
-                }
+                product: updateData
             })
         });
 

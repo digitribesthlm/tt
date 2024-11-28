@@ -41,7 +41,7 @@ export default function WelcomePage() {
         }
 
         localStorage.setItem('user', JSON.stringify(data.user));
-        router.replace('/dashboard');
+        router.replace('/dashboard/stock');
       } else {
         setError(data.message);
       }
