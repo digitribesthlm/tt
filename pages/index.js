@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import ServicesGrid from '../components/ServicesGrid';
 
 export default function WelcomePage() {
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -55,31 +54,36 @@ export default function WelcomePage() {
     <div className="min-h-screen">
       <Navbar onLoginClick={() => setShowLoginModal(true)} />
 
-      <main>
+      <main className="flex-grow">
+        <div className="relative">
+          <div className="absolute inset-0">
+            <div className="absolute inset-y-0 left-0 w-1/2 bg-gray-50" />
+          </div>
+        </div>
+
         <div className="container mx-auto px-8 py-20">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
               <h1 className="text-6xl font-bold leading-tight">
-                <span className="block text-gray-900">GROW</span>
+                <span className="block text-gray-900">MANAGE</span>
                 <span className="block text-blue-600">YOUR</span>
-                <span className="block text-emerald-500">TOPICS</span>
+                <span className="block text-emerald-500">TATTOOS</span>
               </h1>
               <p className="text-gray-600 text-lg max-w-md">
-                Create, manage, and organize your topics efficiently with our powerful platform.
+                Take control of your removable tattoo e-commerce store. Manage products, orders, and customer experiences all in one place.
               </p>
               <div className="flex space-x-4">
                 <button 
                   onClick={() => setShowLoginModal(true)}
                   className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors"
                 >
-                  Get Started
+                  Admin Login
                 </button>
               </div>
             </div>
           </div>
         </div>
 
-        <ServicesGrid />
       </main>
 
       <Footer />
@@ -159,4 +163,3 @@ export default function WelcomePage() {
     </div>
   );
 }
-
