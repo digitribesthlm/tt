@@ -46,7 +46,29 @@ const shopifyFetch = async (endpoint, options = {}) => {
       throw error;
     }
 
-    return data;
+    // Get pagination info from Link header
+    const linkHeader = response.headers.get('Link');
+    let nextPageUrl = null;
+
+    if (linkHeader) {
+      const links = linkHeader.split(',');
+      const nextLink = links.find(link => link.includes('rel="next"'));
+      if (nextLink) {
+        const match = nextLink.match(/\<([^>]+)\>/);
+        if (match) {
+          const fullUrl = match[1];
+          // Extract just the path and query parameters
+          const urlObj = new URL(fullUrl);
+          nextPageUrl = urlObj.pathname.replace('/admin/api/2023-01/', '') + urlObj.search;
+        }
+      }
+    }
+
+    return {
+      data,
+      headers: response.headers,
+      nextPage: nextPageUrl
+    };
   } catch (error) {
     console.error('Shopify fetch error:', {
       message: error.message,
@@ -55,6 +77,6 @@ const shopifyFetch = async (endpoint, options = {}) => {
     });
     throw error;
   }
-}
+};
 
 export { shopifyFetch };

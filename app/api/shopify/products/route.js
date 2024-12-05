@@ -8,30 +8,14 @@ export async function GET() {
         
         // Keep fetching until we have all products
         while (nextPageUrl) {
-            const data = await shopifyFetch(nextPageUrl);
+            const { data, nextPage } = await shopifyFetch(nextPageUrl);
             
             if (!data || !data.products) {
                 throw new Error('Invalid response from Shopify');
             }
 
             allProducts = [...allProducts, ...data.products];
-            
-            // Get the Link header from the response
-            const linkHeader = data.headers?.get('Link');
-            nextPageUrl = null;
-
-            if (linkHeader) {
-                const links = linkHeader.split(',');
-                const nextLink = links.find(link => link.includes('rel="next"'));
-                if (nextLink) {
-                    const match = nextLink.match(/\<([^>]+)\>/);
-                    if (match) {
-                        // Extract just the path and query parameters from the full URL
-                        const url = new URL(match[1]);
-                        nextPageUrl = url.pathname.replace('/admin/api/', '') + url.search;
-                    }
-                }
-            }
+            nextPageUrl = nextPage;
         }
 
         const products = allProducts.map(product => {

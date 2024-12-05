@@ -256,7 +256,10 @@ export default function StockManagement() {
                   <div className="p-4 space-y-3">
                     <div>
                       <h3 className="font-semibold text-lg truncate">{product.title}</h3>
-                      <p className="text-sm text-gray-500">{product.vendor}</p>
+                      <p className="text-sm text-gray-500">
+                        {product.vendor}
+                        <span className="text-xs text-gray-400 ml-2">ID: {product.id}</span>
+                      </p>
                     </div>
                     
                     <div className="flex items-center justify-between">
