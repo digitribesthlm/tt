@@ -3,13 +3,38 @@ import { NextResponse } from 'next/server';
 
 export async function GET() {
     try {
-        const data = await shopifyFetch('products.json');
+        let allProducts = [];
+        let nextPageUrl = 'products.json?limit=250';
         
-        if (!data || !data.products) {
-            throw new Error('Invalid response from Shopify');
+        // Keep fetching until we have all products
+        while (nextPageUrl) {
+            const data = await shopifyFetch(nextPageUrl);
+            
+            if (!data || !data.products) {
+                throw new Error('Invalid response from Shopify');
+            }
+
+            allProducts = [...allProducts, ...data.products];
+            
+            // Get the Link header from the response
+            const linkHeader = data.headers?.get('Link');
+            nextPageUrl = null;
+
+            if (linkHeader) {
+                const links = linkHeader.split(',');
+                const nextLink = links.find(link => link.includes('rel="next"'));
+                if (nextLink) {
+                    const match = nextLink.match(/\<([^>]+)\>/);
+                    if (match) {
+                        // Extract just the path and query parameters from the full URL
+                        const url = new URL(match[1]);
+                        nextPageUrl = url.pathname.replace('/admin/api/', '') + url.search;
+                    }
+                }
+            }
         }
 
-        const products = data.products.map(product => {
+        const products = allProducts.map(product => {
             const mainVariant = product.variants[0] || {};
             const mainImage = product.images[0] || {};
             
@@ -79,4 +104,4 @@ export async function GET() {
             { status: 500 }
         );
     }
-} 
+}
