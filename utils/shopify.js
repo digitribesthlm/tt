@@ -59,7 +59,7 @@ const shopifyFetch = async (endpoint, options = {}) => {
           const fullUrl = match[1];
           // Extract just the path and query parameters
           const urlObj = new URL(fullUrl);
-          nextPageUrl = urlObj.pathname.replace('/admin/api/2023-01/', '') + urlObj.search;
+          nextPageUrl = urlObj.pathname.replace('/admin/api/2024-01/', '') + urlObj.search;
         }
       }
     }

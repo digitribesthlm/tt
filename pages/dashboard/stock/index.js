@@ -18,7 +18,12 @@ export default function StockManagement() {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/shopify/products');
+      const response = await fetch('/api/shopify/products', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
       if (!response.ok) throw new Error('Failed to fetch products');
       const data = await response.json();
       setProducts(data);
@@ -32,15 +37,8 @@ export default function StockManagement() {
   const updateProductStatus = async (productId, newStatus) => {
     try {
       setUpdating(productId);
+      console.log('Starting product update:', { productId, newStatus });
 
-      // Update local state immediately for smooth UI
-      setProducts(products.map(product => 
-        product.id === productId 
-          ? { ...product, status: newStatus }
-          : product
-      ));
-
-      // Then update in Shopify
       const response = await fetch('/api/shopify/products/update', {
         method: 'PUT',
         headers: {
@@ -52,30 +50,36 @@ export default function StockManagement() {
         })
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to update product');
-      }
-      
+      console.log('Update response:', { 
+        ok: response.ok, 
+        status: response.status 
+      });
+
       const updatedProduct = await response.json();
+      console.log('Update response data:', updatedProduct);
+
+      if (!response.ok) {
+        throw new Error(updatedProduct.error || 'Failed to update product');
+      }
+
+      // Update only the changed product in our local state
+      setProducts(currentProducts => 
+        currentProducts.map(product => 
+          product.id === productId 
+            ? { ...product, status: newStatus }
+            : product
+        )
+      );
       
-      // Verify the update was successful and update local state with the response
-      setProducts(products.map(product => 
-        product.id === productId 
-          ? { ...product, ...updatedProduct }
-          : product
-      ));
+      console.log('Local state updated for product:', productId);
 
     } catch (error) {
-      console.error('Error updating product:', error);
-      
-      // Revert local state on error
-      setProducts(products.map(product => 
-        product.id === productId 
-          ? { ...product, status: product.status }
-          : product
-      ));
-      
-      alert('Failed to update product status');
+      console.error('Detailed error updating product:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
+      alert(`Failed to update product status: ${error.message}`);
     } finally {
       setUpdating(null);
     }

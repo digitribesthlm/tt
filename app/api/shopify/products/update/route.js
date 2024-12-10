@@ -14,47 +14,46 @@ export async function PUT(request) {
 
         console.log('Updating product:', { productId, status });
 
-        // First get the current product data
-        const getProduct = await shopifyFetch(`products/${productId}.json`);
-        if (!getProduct.product) {
-            throw new Error('Product not found');
-        }
-
-        // Update only the status while keeping other fields unchanged
-        const updateData = {
-            ...getProduct.product,
-            status: status
-        };
-
         // Update product in Shopify
         const response = await shopifyFetch(`products/${productId}.json`, {
             method: 'PUT',
             body: JSON.stringify({
-                product: updateData
+                product: {
+                    id: productId,
+                    status: status
+                }
             })
         });
 
-        console.log('Shopify response:', response);
+        console.log('Raw Shopify response:', response);
 
-        if (!response.product) {
-            throw new Error('Invalid response from Shopify');
+        if (!response.data) {
+            throw new Error('No data received from Shopify');
         }
 
-        return NextResponse.json(response.product);
+        if (!response.data.product) {
+            console.error('Invalid Shopify response:', response.data);
+            throw new Error('Invalid product data received from Shopify');
+        }
+
+        // Log the updated product data
+        console.log('Successfully updated product:', response.data.product);
+
+        return NextResponse.json(response.data.product);
     } catch (error) {
         console.error('Detailed Shopify API error:', {
             message: error.message,
             stack: error.stack,
-            response: error.response
+            response: error.response,
+            data: error.response?.data
         });
         
         return NextResponse.json(
             { 
-                error: 'Failed to update product', 
-                details: error.message,
-                response: error.response 
+                error: error.message,
+                details: error.response?.data || 'No additional details'
             },
-            { status: 500 }
+            { status: error.status || 500 }
         );
     }
 }
