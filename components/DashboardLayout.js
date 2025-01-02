@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import Footer from './Footer';
-import { FaHome, FaBox, FaSignOutAlt, FaBars } from 'react-icons/fa';
+import { FaHome, FaBox, FaSignOutAlt, FaBars, FaSync } from 'react-icons/fa';
 
 export default function DashboardLayout({ children }) {
   const router = useRouter();
@@ -35,6 +35,26 @@ export default function DashboardLayout({ children }) {
     router.push('/');
   };
 
+  const triggerWebhook = async () => {
+    try {
+      const response = await fetch('/api/trigger-webhook', {
+        method: 'POST'
+      });
+      
+      const result = await response.json();
+      console.log('API response:', result);
+      
+      if (result.success) {
+        alert('Webhook triggered successfully!');
+      } else {
+        alert(`Failed to trigger webhook: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Error calling API:', error);
+      alert(`Error triggering webhook: ${error.message}`);
+    }
+  };
+
   const menuItems = [
     {
       name: 'Dashboard',
@@ -45,6 +65,11 @@ export default function DashboardLayout({ children }) {
       name: 'Stock Management',
       path: '/dashboard/stock',
       icon: <FaBox className="w-5 h-5" />,
+    },
+    {
+      name: 'Trigger Webhook',
+      action: triggerWebhook,
+      icon: <FaSync className="w-5 h-5" />,
     },
   ];
 
@@ -73,10 +98,10 @@ export default function DashboardLayout({ children }) {
                 <span className="text-xl font-bold text-gray-800 ml-2">Admin Panel</span>
               </div>
               <div className="hidden lg:flex lg:items-center lg:ml-6 lg:space-x-4">
-                {menuItems.map((item) => (
+                {menuItems.map((item, index) => (
                   <button
-                    key={item.path}
-                    onClick={() => router.push(item.path)}
+                    key={item.path || index}
+                    onClick={item.action || (() => router.push(item.path))}
                     className={`flex items-center px-4 py-2 text-sm font-medium rounded-md ${
                       router.pathname === item.path
                         ? 'text-blue-600 bg-blue-50'
@@ -106,13 +131,13 @@ export default function DashboardLayout({ children }) {
       {isMenuOpen && (
         <div className="lg:hidden">
           <div className="pt-2 pb-3 space-y-1">
-            {menuItems.map((item) => (
+            {menuItems.map((item, index) => (
               <button
-                key={item.path}
-                onClick={() => {
+                key={item.path || index}
+                onClick={item.action || (() => {
                   router.push(item.path);
                   setIsMenuOpen(false);
-                }}
+                })}
                 className={`flex items-center w-full px-4 py-2 text-base font-medium ${
                   router.pathname === item.path
                     ? 'text-blue-600 bg-blue-50'
